@@ -21,10 +21,15 @@
     <div class="top-actions">
       <div class="conn" id="connBadge"><span class="dot"></span><span id="connText">Connecting…</span></div>
       <button class="icon-btn" id="helpBtn" type="button" title="Show the tour again" aria-label="Show the tour again">?</button>
-      <a class="btn ghost small" id="aboutLink" href="aboutus.html">About us</a>
-      <div class="user-menu">
-        <span class="user-email" id="userEmail"></span>
-        <button class="btn ghost small" id="signOutBtn" type="button">Sign out</button>
+      <button class="icon-btn menu-btn" id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="topMenu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <div class="top-menu" id="topMenu">
+        <a class="btn ghost small" id="aboutLink" href="aboutus.html">About us</a>
+        <div class="user-menu">
+          <span class="user-email" id="userEmail"></span>
+          <button class="btn ghost small" id="signOutBtn" type="button">Sign out</button>
+        </div>
       </div>
     </div>
   </header>
@@ -145,5 +150,6 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="assets/js/firebase-config.js"></script>
   <script type="module" src="assets/js/dashboard.js"></script>
+  <script type="module" src="assets/js/menu.js"></script>
 </body>
 </html>
