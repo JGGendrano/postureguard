@@ -85,6 +85,29 @@ h2 { font-size: 14px; margin: 0; font-weight: 700; color: var(--muted); text-tra
 .status-word { font-size: 44px; font-weight: 800; letter-spacing: -.03em; line-height: 1; color: var(--good); }
 .hero.is-bad .status-word { color: var(--warn); }
 .hero.is-alert .status-word { color: var(--bad); }
+.hero.is-info .status-word { color: var(--accent); }
+
+/* State icon (SVGs in assets/icons, colored through a CSS mask) */
+.status-row { display: flex; align-items: center; gap: 14px; }
+.state-icon {
+  flex: none; width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center;
+  color: var(--good); background: #1f9d6b14; transition: color .4s, background .4s;
+}
+.state-icon::before {
+  content: ""; width: 34px; height: 34px; background: currentColor;
+  -webkit-mask: var(--icon) center / contain no-repeat; mask: var(--icon) center / contain no-repeat;
+}
+.hero.is-bad .state-icon { color: var(--warn); background: #d9900f17; }
+.hero.is-alert .state-icon { color: var(--bad); background: #d6453d14; }
+.hero.is-info .state-icon { color: var(--accent); background: #1673c914; }
+.state-icon[data-state="upright"] { --icon: url("../icons/upright.svg"); }
+.state-icon[data-state="slouching"] { --icon: url("../icons/slouching.svg"); }
+.state-icon[data-state="slouch-alert"] { --icon: url("../icons/slouch-alert.svg"); }
+.state-icon[data-state="corrected"] { --icon: url("../icons/corrected.svg"); }
+.state-icon[data-state="leaning-back"] { --icon: url("../icons/leaning-back.svg"); }
+.state-icon[data-state="sitting-too-long"] { --icon: url("../icons/sitting-too-long.svg"); }
+.state-icon[data-state="on-break"] { --icon: url("../icons/on-break.svg"); }
+.state-icon[data-state="calibrating"] { --icon: url("../icons/calibrating.svg"); }
 .hint { color: var(--muted); font-size: 14px; margin: 8px 0 0; line-height: 1.45; }
 .hint.center { text-align: center; }
 .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; margin-top: 20px; }
@@ -174,6 +197,8 @@ h2 { font-size: 14px; margin: 0; font-weight: 700; color: var(--muted); text-tra
   .settings { grid-template-columns: 1fr; }
   .toggle, .actions { grid-column: auto; }
   .status-word { font-size: 38px; }
+  .state-icon { width: 48px; height: 48px; border-radius: 14px; }
+  .state-icon::before { width: 28px; height: 28px; }
 }
 
 /* ---------- Shared bits ---------- */

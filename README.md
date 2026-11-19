@@ -62,6 +62,7 @@ The dashboard marks the device offline if `live.updatedAt` is older than 10 seco
 - `dashboard.html` – dashboard page
 - `assets/css/style.css` – styles for both pages
 - `assets/logo-mark.png`, `assets/logo-mark-white.png` – the spine symbol from `project logo.jpg`, used in the headers and browser tab
+- `assets/icons/*.svg` – user-state icons shown on the Posture card (upright, slouching, slouch-alert, corrected, leaning-back, sitting-too-long, on-break, calibrating). The CSS colors them with a mask, so each takes the card's state color.
 - `assets/js/firebase-config.js` – your Firebase keys
 - `assets/js/firebase.js` – starts Firebase (shared by both pages)
 - `assets/js/login.js` – sign in, sign up, password reset

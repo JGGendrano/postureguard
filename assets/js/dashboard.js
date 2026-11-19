@@ -125,7 +125,7 @@ function demoSource() {
   const emit = (k, v) => subs[k].forEach((cb) => cb(v));
   let settings = { ...DEFAULT_SETTINGS, alertDelayMin: 2, sitLimitMin: 10 };
   const events = [];
-  const s = { dev: 4, target: 4, bad: 0, sit: 0, moving: 0, level: 0, type: "none",
+  const s = { dev: 4, target: 4, bad: 0, sit: 0, moving: 0, recline: 0, level: 0, type: "none",
               good: 0, worn: 0, posture: "good", alertStart: 0, now: Date.now() };
 
   const push = (e) => { events.push({ ...e, at: s.now }); emit("events", events.slice(-50)); };
@@ -155,6 +155,10 @@ function demoSource() {
     } else if (Math.random() < 0.006) s.moving = 60;
     else s.sit += dt;
 
+    // Occasionally lean back in the chair (shows the "leaning back" state)
+    if (s.recline > 0) s.recline -= dt;
+    else if (s.posture === "good" && !s.moving && Math.random() < 0.01) s.recline = 40;
+
     if (s.posture === "bad") s.bad += dt;
     s.worn += dt; if (s.posture === "good") s.good += dt;
 
@@ -173,7 +177,7 @@ function demoSource() {
     }
 
     emit("live", {
-      posture: s.posture, deviation: +s.dev.toFixed(1), tilt: +(s.dev * 0.9 + 3).toFixed(1),
+      posture: s.posture, deviation: +s.dev.toFixed(1), tilt: s.recline > 0 ? -12 : +(s.dev * 0.9 + 3).toFixed(1),
       badSeconds: s.posture === "bad" ? s.bad : 0, sittingSeconds: s.sit, moving: s.moving > 0,
       alertLevel: s.level, alertType: s.type, updatedAt: Date.now()
     });
@@ -199,23 +203,68 @@ const fmtTime = (sec) => {
 };
 const clock = (ms) => new Date(ms).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 
+/* ---------------- User state (icon + headline) ---------------- */
+
+// One entry per user state; icons live in assets/icons/<key>.svg
+const STATE_VIEW = {
+  calibrating:        { word: "Calibrating",  tone: "info",  label: "Calibrating",
+                        hint: "Sit upright and still. Saving your upright baseline…" },
+  "sitting-too-long": { word: "Stand up",     tone: "alert", label: "Sitting too long",
+                        hint: "You've been sitting too long. Walk for about a minute to reset the timer." },
+  "slouch-alert":     { word: "Slouching",    tone: "alert", label: "Slouching too long",
+                        hint: "Vibration is on. Sit up straight to stop it." },
+  slouching:          { word: "Slouching",    tone: "bad",   label: "Slouching", hint: null },
+  "on-break":         { word: "On a break",   tone: "info",  label: "Moving or on a break",
+                        hint: "Movement detected. The sitting timer resets while you walk." },
+  corrected:          { word: "Corrected",    tone: "good",  label: "Posture corrected",
+                        hint: "Nice. Your posture is back within range." },
+  "leaning-back":     { word: "Leaning back", tone: "info",  label: "Leaning back",
+                        hint: "Reclined. Bending is ignored while you lean back." },
+  upright:            { word: "Upright",      tone: "good",  label: "Sitting upright",
+                        hint: "Posture is within your calibrated range." }
+};
+const ui = { calibratingUntil: 0, correctedUntil: 0, hadPostureAlert: false };
+
+function userState(d) {
+  const now = Date.now();
+  const bad = d.posture === "bad";
+  const postureAlert = d.alertLevel > 0 && d.alertType === "posture";
+  const sitAlert = d.alertLevel > 0 && d.alertType === "sitting";
+  if (ui.hadPostureAlert && !postureAlert && !bad) ui.correctedUntil = now + 6000;
+  ui.hadPostureAlert = postureAlert;
+
+  if (now < ui.calibratingUntil) return "calibrating";
+  if (postureAlert) return "slouch-alert";
+  if (bad) return "slouching";               // this card is about posture first
+  if (sitAlert) return "sitting-too-long";
+  if (d.moving) return "on-break";
+  if (now < ui.correctedUntil) return "corrected";
+  if (d.tilt != null && d.tilt <= -5) return "leaning-back";
+  return "upright";
+}
+
+function renderUserState(d) {
+  const key = userState(d);
+  const v = STATE_VIEW[key];
+  const card = $("postureCard");
+  card.classList.toggle("is-bad", v.tone === "bad");
+  card.classList.toggle("is-alert", v.tone === "alert");
+  card.classList.toggle("is-info", v.tone === "info");
+  const icon = $("stateIcon");
+  icon.dataset.state = key;
+  icon.setAttribute("aria-label", v.label);
+  $("postureStatus").textContent = v.word;
+  const delay = state.settings.alertDelayMin * 60;
+  $("postureHint").textContent = v.hint ?? `Alert in ${fmtTime(delay - (d.badSeconds || 0))} if this continues.`;
+}
+
 function renderLive(d) {
   state.live = d;
   state.lastUpdate = Date.now();
   const thr = state.settings.deviationThreshold;
   const bad = d.posture === "bad";
 
-  const card = $("postureCard");
-  card.classList.toggle("is-bad", bad);
-  card.classList.toggle("is-alert", d.alertLevel > 0);
-  $("postureStatus").textContent = bad ? "Slouching" : "Upright";
-
-  const delay = state.settings.alertDelayMin * 60;
-  $("postureHint").textContent = bad
-    ? (d.alertLevel > 0 && d.alertType === "posture"
-        ? "Vibration is on. Sit up straight to stop it."
-        : `Alert in ${fmtTime(delay - (d.badSeconds || 0))} if this continues.`)
-    : "Posture is within your calibrated range.";
+  renderUserState(d);
 
   $("deviation").textContent = d.deviation.toFixed(1);
   $("tilt").textContent = d.tilt != null ? d.tilt.toFixed(1) : "–";
@@ -432,7 +481,12 @@ setInterval(() => {
     const btn = $("calibrateBtn");
     if (!confirm("Sit upright and still for 5 seconds after pressing OK.")) return;
     btn.disabled = true; btn.textContent = "Calibrating…";
+    ui.calibratingUntil = Date.now() + 6000;
+    if (state.live) renderUserState(state.live);
     try { await src.calibrate(); } catch (err) { alert("Couldn't send: " + err.message); }
-    setTimeout(() => { btn.disabled = false; btn.textContent = "Calibrate posture"; }, 5000);
+    setTimeout(() => {
+      btn.disabled = false; btn.textContent = "Calibrate posture";
+      if (state.live) renderUserState(state.live);
+    }, 6000);
   });
 })();
