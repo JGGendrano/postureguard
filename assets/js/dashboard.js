@@ -20,6 +20,7 @@ const DEFAULT_SETTINGS = {
 };
 
 import { startTutorial, DASHBOARD_TOUR } from "./tutorial.js";
+import { initTheme } from "./theme.js";
 
 const SDK = "https://www.gstatic.com/firebasejs/13.3.0/";
 const params = new URLSearchParams(location.search);
@@ -54,7 +55,7 @@ async function firebaseSource(rtdb) {
   return {
     onLive: (cb) => db.onValue(path("live"), (s) => s.val() && cb(s.val())),
     onToday: (cb) => db.onValue(path("today"), (s) => s.val() && cb(s.val())),
-    onSettings: (cb) => db.onValue(path("settings"), (s) => cb(s.val() || {})),
+    onSettings: (cb) => db.onValue(path("settings"), (s) => s.val() || {}),
     onEvents: (cb) =>
       db.onValue(db.query(path("events"), db.limitToLast(50)), (s) => {
         const list = [];
@@ -379,6 +380,21 @@ function initChart() {
   });
 }
 
+function updateChartTheme() {
+  if (!chart) return;
+  const css = getComputedStyle(document.documentElement);
+  const line = css.getPropertyValue("--accent").trim();
+  const thr = css.getPropertyValue("--bad").trim();
+  const grid = css.getPropertyValue("--line").trim();
+  const ink = css.getPropertyValue("--muted").trim();
+  chart.data.datasets[0].borderColor = line;
+  chart.data.datasets[0].backgroundColor = line + "22";
+  chart.data.datasets[1].borderColor = thr;
+  chart.options.scales.y.grid.color = grid;
+  chart.options.scales.y.ticks.color = ink;
+  chart.update("none");
+}
+
 let lastChartPush = 0;
 function pushChart(dev, thr) {
   if (!chart) return;
@@ -426,6 +442,7 @@ setInterval(() => {
     $("signOutBtn").textContent = "Exit demo";
     $("signOutBtn").addEventListener("click", exitDemo);
   }
+  await initTheme({ session, isDemo, onChange: updateChartTheme });
   document.body.classList.remove("is-loading");
 
   if (window.Chart) initChart();

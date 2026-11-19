@@ -144,6 +144,8 @@ export const DASHBOARD_TOUR = [
     text: "Each time you put on the harness, sit up straight and press this. It saves your upright position so the readings fit your body." },
   { target: "#settingsCard", title: "Device settings",
     text: "Change how sensitive the alerts are, how long before they start, your sitting limit and vibration strength. Press Save to send them to the harness. Quiet mode pauses alerts." },
+  { target: "#themeBtn", title: "Light and dark mode",
+    text: "Switch between light and dark mode here. When you're signed in, your choice stays saved to your account." },
   { target: "#helpBtn", title: "That's it!",
     text: "Press this button anytime to see the tour again." }
 ];

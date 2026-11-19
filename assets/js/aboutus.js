@@ -1,6 +1,8 @@
 // PostureGuard About Us page.
 // Requires sign-in (index.html) unless opened as aboutus.html?demo=1.
 
+import { initTheme } from "./theme.js";
+
 const SDK = "https://www.gstatic.com/firebasejs/13.3.0/";
 const params = new URLSearchParams(location.search);
 // Demo mode lasts for the whole visit: ?demo=1 turns it on, "Exit demo" (or the login page) turns it off.
@@ -29,20 +31,20 @@ const $ = (id) => document.getElementById(id);
 
 /* ---------------- Sign-in ---------------- */
 
-// Returns true for a signed-in user, false if nobody is signed in.
+// Returns { user, fb } for a signed-in user, or null if nobody is signed in.
 async function requireUser() {
   const fb = await import("./firebase.js");
   const { onAuthStateChanged, signOut } = await import(SDK + "firebase-auth.js");
   const user = await new Promise((resolve) => {
     const stop = onAuthStateChanged(fb.auth, (u) => { stop(); resolve(u); });
   });
-  if (!user) return false;
+  if (!user) return null;
   $("userEmail").textContent = user.email;
   $("signOutBtn").addEventListener("click", async () => {
     await signOut(fb.auth);
     location.replace("index.html");
   });
-  return true;
+  return { user, fb };
 }
 
 /* ---------------- Team lineup + note popup ---------------- */
@@ -211,29 +213,31 @@ function initReveal() {
 /* ---------------- Start ---------------- */
 
 (async function start() {
+  let session = null;
   if (isDemo) {
     $("userEmail").textContent = "Demo";
     $("signOutBtn").textContent = "Exit demo";
     $("signOutBtn").addEventListener("click", exitDemo);
   } else {
-    let signedIn = false;
     try {
-      signedIn = await requireUser();
+      session = await requireUser();
     } catch (err) {
       // Huwag itago ang error: manatili sa page at ipakita ang problema (parang dashboard)
       console.error("About us: couldn't load sign-in", err);
+      await initTheme({ session: null, isDemo: true });
       document.body.classList.remove("is-loading");
       $("userEmail").textContent = "Sign-in error (open the browser console)";
       initTeam();
       initReveal();
       return;
     }
-    if (!signedIn) {
+    if (!session) {
       console.warn("About us: no signed-in user, going back to the login page.");
       location.replace("index.html");
       return;
     }
   }
+  await initTheme({ session, isDemo });
   document.body.classList.remove("is-loading");
   initTeam();
   initReveal();
