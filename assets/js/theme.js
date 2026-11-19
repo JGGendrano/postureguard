@@ -1,8 +1,10 @@
 // PostureGuard theme controller.
 // Default is "light". Signed-in users save their preference per account
-// (localStorage + Firebase RTDB when configured). Demo mode stays default light on load.
+// (localStorage + Firebase RTDB when configured).
+// Demo mode keeps the choice for the current visit (sessionStorage) and resets to light on exit.
 
 const SDK = "https://www.gstatic.com/firebasejs/13.3.0/";
+const DEMO_KEY = "pg_demo_theme";
 const VALID = new Set(["light", "dark"]);
 const normalize = (v) => (VALID.has(v) ? v : "light");
 
@@ -22,11 +24,19 @@ function applyTheme(theme) {
 }
 
 function themeStore(session, isDemo) {
-  // Demo mode / no account: always default to light, never persist across visits.
+  // Demo mode / no account: keep during this visit only, default to light on fresh demo visits.
   if (isDemo || !session || !session.user) {
     return {
-      async load() { return "light"; },
-      async save() {}
+      async load() {
+        try {
+          const saved = sessionStorage.getItem(DEMO_KEY);
+          if (VALID.has(saved)) return saved;
+        } catch {}
+        return "light";
+      },
+      async save(mode) {
+        try { sessionStorage.setItem(DEMO_KEY, normalize(mode)); } catch {}
+      }
     };
   }
 

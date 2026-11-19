@@ -33,7 +33,10 @@ const isDemo = (() => {
   } catch { return fromUrl; }
 })();
 function exitDemo() {
-  try { sessionStorage.removeItem("pg_demo"); } catch {}
+  try {
+    sessionStorage.removeItem("pg_demo");
+    sessionStorage.removeItem("pg_demo_theme");
+  } catch {}
   location.replace("index.html");
 }
 
@@ -55,7 +58,7 @@ async function firebaseSource(rtdb) {
   return {
     onLive: (cb) => db.onValue(path("live"), (s) => s.val() && cb(s.val())),
     onToday: (cb) => db.onValue(path("today"), (s) => s.val() && cb(s.val())),
-    onSettings: (cb) => db.onValue(path("settings"), (s) => s.val() || {}),
+    onSettings: (cb) => db.onValue(path("settings"), (s) => cb(s.val() || {})),
     onEvents: (cb) =>
       db.onValue(db.query(path("events"), db.limitToLast(50)), (s) => {
         const list = [];

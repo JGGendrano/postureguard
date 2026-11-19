@@ -14,7 +14,10 @@ const isDemo = (() => {
   } catch { return fromUrl; }
 })();
 function exitDemo() {
-  try { sessionStorage.removeItem("pg_demo"); } catch {}
+  try {
+    sessionStorage.removeItem("pg_demo");
+    sessionStorage.removeItem("pg_demo_theme");
+  } catch {}
   location.replace("index.html");
 }
 const $ = (id) => document.getElementById(id);

@@ -12,7 +12,10 @@ let mode = "signin"; // or "signup"
 let busy = false;
 
 // Coming back to the login page ends demo mode.
-try { sessionStorage.removeItem("pg_demo"); } catch {}
+try {
+  sessionStorage.removeItem("pg_demo");
+  sessionStorage.removeItem("pg_demo_theme");
+} catch {}
 
 // Already signed in? Go straight to the dashboard.
 onAuthStateChanged(auth, (user) => {
