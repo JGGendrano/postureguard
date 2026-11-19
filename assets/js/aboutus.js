@@ -190,6 +190,24 @@ function initTeam() {
   note.addEventListener("cancel", (e) => { e.preventDefault(); close(); });
 }
 
+/* ---------------- Phone: cards ease in while scrolling ---------------- */
+
+// The CSS for this only applies on phone widths; on wider screens the cards just show.
+function initReveal() {
+  const lineup = document.querySelector(".lineup");
+  if (!lineup || !("IntersectionObserver" in window)) return;
+  const items = lineup.querySelectorAll(".member-item");
+  const seen = new IntersectionObserver((entries) => {
+    entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      e.target.classList.add("in");
+      seen.unobserve(e.target);
+    });
+  }, { threshold: 0.18, rootMargin: "0px 0px -6% 0px" });
+  lineup.classList.add("reveal");
+  items.forEach((item) => seen.observe(item));
+}
+
 /* ---------------- Start ---------------- */
 
 (async function start() {
@@ -207,6 +225,7 @@ function initTeam() {
       document.body.classList.remove("is-loading");
       $("userEmail").textContent = "Sign-in error (open the browser console)";
       initTeam();
+      initReveal();
       return;
     }
     if (!signedIn) {
@@ -217,4 +236,5 @@ function initTeam() {
   }
   document.body.classList.remove("is-loading");
   initTeam();
+  initReveal();
 })();
