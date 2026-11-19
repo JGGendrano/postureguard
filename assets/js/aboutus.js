@@ -123,7 +123,7 @@ function initTeam() {
     noteImg.onerror = () => { noteImg.onerror = null; noteImg.src = initialAvatar(name); };
     noteImg.src = img.src;
     noteRole.textContent = role;
-    noteTitle.textContent = "About " + name.split(" ")[0];
+    noteTitle.textContent = "About " + name;
     noteBody.innerHTML = bio ? bio.innerHTML : "";
 
     source = img;
