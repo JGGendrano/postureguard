@@ -48,7 +48,7 @@ Everything lives under `devices/{deviceId}/`.
 | `live` | ESP32, every 1–2 s | `posture` ("good"/"bad"), `deviation` (%), `tilt` (°), `badSeconds`, `sittingSeconds`, `moving` (bool), `alertLevel` (0–3), `alertType` ("none"/"posture"/"sitting"), `updatedAt` (ms timestamp) |
 | `today` | ESP32 | `goodSeconds`, `wornSeconds` |
 | `events/{pushId}` | ESP32 | `type`, optional `level` / `responseSec`, `at` (ms timestamp) |
-| `settings` | Dashboard | `deviationThreshold` (%), `alertDelayMin`, `sitLimitMin`, `maxVibration` (%), `quietMode` |
+| `settings` | Dashboard | `alertDelayMin`, `sitLimitMin`, `maxVibration` (%), `quietMode`. The bad-posture threshold is **fixed on the device**, not a setting: 15% flex deviation or a 20° forward bend from calibrated upright (20° = RULA neutral trunk limit). |
 | `commands/calibrate` | Dashboard | timestamp; ESP32 recalibrates, then deletes it |
 | `users/{uid}/tutorialDone` | Dashboard | `{ at, skipped }`, so the tour only shows once per account |
 

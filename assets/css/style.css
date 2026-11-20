@@ -135,6 +135,7 @@ h2 { font-size: 14px; margin: 0; font-weight: 700; color: var(--muted); text-tra
 
 /* Stats */
 .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.stats .stat:first-child { grid-column: span 2; }
 .stat { background: var(--bg); border-radius: 14px; padding: 16px; }
 .stat-value { display: block; font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
 .stat-label { font-size: 12px; color: var(--muted); font-weight: 600; }
@@ -160,13 +161,13 @@ h2 { font-size: 14px; margin: 0; font-weight: 700; color: var(--muted); text-tra
 .log time { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 
 /* Settings */
-.settings { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.settings { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
 .settings label > span { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
 .field { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); padding: 0 12px; }
 .field:focus-within { border-color: var(--accent); background: #fff; }
 .field input { border: 0; background: transparent; font: inherit; font-weight: 700; font-size: 16px; padding: 10px 0; width: 100%; outline: none; color: var(--ink); }
 .field em { font-style: normal; color: var(--muted); font-size: 13px; }
-.toggle { grid-column: span 2; display: flex; align-items: center; gap: 10px; }
+.toggle { grid-column: span 1; display: flex; align-items: center; gap: 10px; }
 .toggle span { margin: 0 !important; font-size: 14px !important; color: var(--ink) !important; }
 .toggle input { width: 18px; height: 18px; accent-color: var(--accent); }
 .actions { grid-column: span 2; display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
@@ -182,6 +183,27 @@ h2 { font-size: 14px; margin: 0; font-weight: 700; color: var(--muted); text-tra
 
 .foot { max-width: 1200px; margin: 0 auto; padding: 0 16px 32px; color: var(--muted); font-size: 13px; }
 
+/* Level 3 alert pop-up */
+dialog.alert-modal {
+  border: 0; padding: 0; background: transparent; margin: auto; overflow: visible; width: min(420px, 92vw);
+}
+dialog.alert-modal::backdrop { background: rgba(15, 25, 20, .55); backdrop-filter: blur(3px); }
+dialog.alert-modal[open] .alert-modal-card { animation: alertPop .35s cubic-bezier(.2, .9, .25, 1.15) both; }
+@keyframes alertPop { from { opacity: 0; transform: translateY(12px) scale(.96); } }
+.alert-modal-card {
+  background: var(--card); color: var(--ink); text-align: center;
+  border: 1px solid var(--line); border-top: 6px solid var(--bad); border-radius: var(--radius);
+  padding: 26px 24px 24px; box-shadow: 0 20px 50px rgba(0, 0, 0, .25);
+}
+.alert-modal-card .state-icon {
+  margin: 0 auto 12px; width: 64px; height: 64px; color: var(--bad); background: #d6453d14;
+  animation: alertShake .5s ease-in-out .35s 2;
+}
+@keyframes alertShake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+.alert-modal-card h2 { margin: 0 0 8px; font-size: 22px; font-weight: 800; color: var(--bad); text-transform: none; letter-spacing: -.01em; }
+.alert-modal-card p { margin: 0 0 20px; color: var(--muted); font-size: 14.5px; line-height: 1.5; }
+.alert-modal-card .btn { width: 100%; }
+
 /* Responsive */
 @media (max-width: 960px) {
   .grid { grid-template-columns: 1fr 1fr; }
@@ -189,6 +211,7 @@ h2 { font-size: 14px; margin: 0; font-weight: 700; color: var(--muted); text-tra
   .card.tall { grid-row: auto; grid-column: span 2; }
   .log { max-height: 360px; }
   .settings { grid-template-columns: 1fr 1fr; }
+  .toggle { grid-column: span 2; }
 }
 @media (max-width: 640px) {
   .grid { grid-template-columns: 1fr; }

@@ -79,10 +79,6 @@
           <div class="bar"><div class="bar-fill" id="deviationBar"></div><div class="bar-mark" id="thresholdMark"></div></div>
         </div>
         <div class="metric">
-          <span class="label">Forward tilt</span>
-          <span class="value"><span id="tilt">–</span><small>°</small></span>
-        </div>
-        <div class="metric">
           <span class="label">Bad posture for</span>
           <span class="value" id="badFor">0:00</span>
         </div>
@@ -105,7 +101,7 @@
           <span class="ring-sub">of <span id="sitLimit">60</span> min</span>
         </div>
       </div>
-      <p class="hint center" id="sitHint">Timer resets when you get up and walk.</p>
+      <p class="hint center" id="sitHint">Stand up and stretch now and then to give your back a rest.</p>
     </section>
 
     <!-- Today -->
@@ -114,7 +110,6 @@
       <div class="stats">
         <div class="stat"><span class="stat-value" id="goodPct">–</span><span class="stat-label">Good posture</span></div>
         <div class="stat"><span class="stat-value" id="alertCount">0</span><span class="stat-label">Alerts</span></div>
-        <div class="stat"><span class="stat-value" id="avgResponse">–</span><span class="stat-label">Avg response</span></div>
         <div class="stat"><span class="stat-value" id="breakCount">0</span><span class="stat-label">Breaks</span></div>
       </div>
     </section>
@@ -144,10 +139,6 @@
       </div>
       <form id="settingsForm" class="settings">
         <label>
-          <span>Bad posture threshold</span>
-          <div class="field"><input type="number" name="deviationThreshold" min="5" max="50" step="1" required><em>%</em></div>
-        </label>
-        <label>
           <span>Alert after</span>
           <div class="field"><input type="number" name="alertDelayMin" min="0.5" max="30" step="0.5" required><em>min</em></div>
         </label>
@@ -172,6 +163,17 @@
   </main>
 
   <footer class="foot" id="footNote"></footer>
+
+  <!-- Level 3 posture alert -->
+  <dialog class="alert-modal" id="alertModal" aria-labelledby="alertModalTitle">
+    <div class="alert-modal-card">
+      <span class="state-icon" data-state="slouch-alert" aria-hidden="true"></span>
+      <h2 id="alertModalTitle">Fix your posture</h2>
+      <p id="alertModalText">You've been slouching for a while and the vibration is at its strongest.
+        Sit up straight, pull your shoulders back, and keep your screen at eye level.</p>
+      <button class="btn" type="button" id="alertModalBtn">I'm sitting up straight</button>
+    </div>
+  </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="assets/js/firebase-config.js"></script>

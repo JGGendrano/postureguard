@@ -6,13 +6,18 @@
 //   live      { posture: "good"|"bad", deviation, tilt, badSeconds, sittingSeconds,
 //               moving, alertLevel (0-3), alertType: "none"|"posture"|"sitting", updatedAt }
 //   today     { goodSeconds, wornSeconds }
-//   settings  { deviationThreshold, alertDelayMin, sitLimitMin, maxVibration, quietMode }
+//   settings  { alertDelayMin, sitLimitMin, maxVibration, quietMode }
 //   commands  { calibrate: <timestamp> }           (device clears it after calibrating)
 //   events    { <pushId>: { type, level?, responseSec?, at } }
 //             types: bad_start, alert, corrected, sit_reminder, break, calibrated, snooze
 
+// Bad-posture threshold is fixed (not user-adjustable).
+// Research basis: trunk flexion under 20° is the neutral range in RULA ergonomic assessment.
+// The flex-deviation value below is the device's matching flex reading for that bend.
+const POSTURE_THRESHOLD = 15;      // % flex deviation from calibrated upright
+// The 20° forward-bend limit (RULA) is applied on the ESP32 using the MPU-6050 tilt.
+
 const DEFAULT_SETTINGS = {
-  deviationThreshold: 15,
   alertDelayMin: 5,
   sitLimitMin: 60,
   maxVibration: 100,
@@ -144,7 +149,7 @@ function demoSource() {
     s.dev += (s.target - s.dev) * 0.25 + (Math.random() - 0.5) * 1.5;
     s.dev = Math.max(0, s.dev);
 
-    const thr = settings.deviationThreshold;
+    const thr = POSTURE_THRESHOLD;
     const wasBad = s.posture === "bad";
     if (!wasBad && s.dev > thr) { s.posture = "bad"; s.bad = 0; push({ type: "bad_start" }); }
     if (wasBad && s.dev < thr - 5) {
@@ -214,7 +219,7 @@ const STATE_VIEW = {
   calibrating:        { word: "Calibrating",  tone: "info",  label: "Calibrating",
                         hint: "Sit upright and still. Saving your upright baseline…" },
   "sitting-too-long": { word: "Stand up",     tone: "alert", label: "Sitting too long",
-                        hint: "You've been sitting too long. Walk for about a minute to reset the timer." },
+                        hint: "You've been sitting too long. Stand up and stretch to take a break." },
   "slouch-alert":     { word: "Slouching",    tone: "alert", label: "Slouching too long",
                         hint: "Vibration is on. Sit up straight to stop it." },
   slouching:          { word: "Slouching",    tone: "bad",   label: "Slouching", hint: null },
@@ -262,16 +267,41 @@ function renderUserState(d) {
   $("postureHint").textContent = v.hint ?? `Alert in ${fmtTime(delay - (d.badSeconds || 0))} if this continues.`;
 }
 
+/* ---------------- Level 3 alert pop-up ---------------- */
+
+// Opens once per alert when the posture alert reaches level 3;
+// closes by itself when the alert ends (posture corrected).
+let alertModalShown = false;
+
+function updateAlertModal(d) {
+  const dlg = $("alertModal");
+  const postureAlert = d.alertType === "posture" && d.alertLevel > 0;
+  const level3 = postureAlert && d.alertLevel >= 3 && !state.settings.quietMode;
+
+  if (level3 && !alertModalShown) {
+    alertModalShown = true;
+    const mins = Math.max(1, Math.round((d.badSeconds || 0) / 60));
+    $("alertModalText").textContent =
+      `You've been slouching for about ${mins} minute${mins === 1 ? "" : "s"} and the vibration is at its strongest. ` +
+      "Sit up straight, pull your shoulders back, and keep your screen at eye level.";
+    if (!dlg.open) dlg.showModal();
+  }
+  if (!postureAlert) {
+    alertModalShown = false;
+    if (dlg.open) dlg.close();
+  }
+}
+
 function renderLive(d) {
   state.live = d;
   state.lastUpdate = Date.now();
-  const thr = state.settings.deviationThreshold;
+  const thr = POSTURE_THRESHOLD;
   const bad = d.posture === "bad";
 
   renderUserState(d);
+  updateAlertModal(d);
 
   $("deviation").textContent = d.deviation.toFixed(1);
-  $("tilt").textContent = d.tilt != null ? d.tilt.toFixed(1) : "–";
   $("badFor").textContent = fmtTime(d.badSeconds);
   const scale = Math.max(thr * 2, 30);
   $("deviationBar").style.width = Math.min(100, (d.deviation / scale) * 100) + "%";
@@ -300,9 +330,10 @@ function renderLive(d) {
   $("movingPill").textContent = d.moving ? "Moving" : "Still";
   $("movingPill").className = "pill " + (d.moving ? "good" : "neutral");
   $("sitHint").textContent = frac >= 1
-    ? "Time to stand up and stretch. Walk for about a minute to reset."
-    : d.moving ? "Movement detected. Keep walking to reset the timer."
-    : "Timer resets when you get up and walk.";
+    ? "Time for a break! Stand up, stretch, and walk around a bit."
+    : d.moving ? "Nice, you're taking a break. Keep moving."
+    : frac >= 0.8 ? "Almost time for a break. Get ready to stand up and stretch."
+    : "Stand up and stretch now and then to give your back a rest.";
 
   pushChart(d.deviation, thr);
 }
@@ -337,11 +368,8 @@ function renderEvents(list) {
   }
 
   const alerts = state.events.filter((e) => e.type === "alert" && e.level === 1 || e.type === "sit_reminder");
-  const responses = state.events.filter((e) => e.type === "corrected" && e.responseSec != null);
   $("alertCount").textContent = alerts.length;
   $("breakCount").textContent = state.events.filter((e) => e.type === "break").length;
-  $("avgResponse").textContent = responses.length
-    ? fmtTime(responses.reduce((a, e) => a + e.responseSec, 0) / responses.length) : "–";
 }
 
 function renderSettings(s) {
@@ -481,7 +509,6 @@ setInterval(() => {
     e.preventDefault();
     const f = e.target;
     const v = {
-      deviationThreshold: Number(f.deviationThreshold.value),
       alertDelayMin: Number(f.alertDelayMin.value),
       sitLimitMin: Number(f.sitLimitMin.value),
       maxVibration: Number(f.maxVibration.value),
@@ -496,6 +523,8 @@ setInterval(() => {
     }
     setTimeout(() => ($("savedNote").textContent = ""), 4000);
   });
+
+  $("alertModalBtn").addEventListener("click", () => $("alertModal").close());
 
   $("calibrateBtn").addEventListener("click", async () => {
     const btn = $("calibrateBtn");
