@@ -294,7 +294,9 @@ function updateAlertModal(d) {
 
 function renderLive(d) {
   state.live = d;
-  state.lastUpdate = Date.now();
+  // Use the device's own timestamp, so old data left in the database doesn't look "online"
+  state.lastUpdate = d.updatedAt ? Math.min(d.updatedAt, Date.now()) : Date.now();
+  updateConn();
   const thr = POSTURE_THRESHOLD;
   const bad = d.posture === "bad";
 
@@ -450,11 +452,19 @@ function setConn(mode, text) {
   $("connText").textContent = text;
 }
 
-setInterval(() => {
-  if (!state.lastUpdate) return;
+// Online = the device sent an update in the last 10 s (it sends one every 2 s)
+function updateConn() {
+  if (!useFirebase || !state.lastUpdate) return;
   const age = (Date.now() - state.lastUpdate) / 1000;
-  if (useFirebase) setConn(age < 10 ? "ok" : "off", age < 10 ? "Device online" : `Device offline · last seen ${clock(state.lastUpdate)}`);
-}, 2000);
+  setConn(age < 10 ? "ok" : "off", age < 10 ? "Device online" : `Device offline · last seen ${lastSeen(state.lastUpdate)}`);
+}
+function lastSeen(ms) {
+  const d = new Date(ms);
+  return d.toDateString() === new Date().toDateString()
+    ? clock(ms)
+    : d.toLocaleDateString([], { month: "short", day: "numeric" }) + ", " + clock(ms);
+}
+setInterval(updateConn, 2000);
 
 /* ---------------- Start ---------------- */
 
