@@ -5,7 +5,7 @@
 window.POSTUREGUARD_FIREBASE = {
   apiKey: "AIzaSyBjQqrB6FtrKmPd6sXfGZUdHk4lkMtUDH4",
   authDomain: "postureguardesp32.firebaseapp.com",
-  databaseURL: "",
+  databaseURL: "https://postureguardesp32-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "postureguardesp32",
   storageBucket: "postureguardesp32.firebasestorage.app",
   messagingSenderId: "998268182167",

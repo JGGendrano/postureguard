@@ -45,9 +45,9 @@ Everything lives under `devices/{deviceId}/`.
 
 | Path | Written by | Contents |
 |---|---|---|
-| `live` | ESP32, every 1–2 s | `posture` ("good"/"bad"), `deviation` (%), `tilt` (°), `badSeconds`, `sittingSeconds`, `moving` (bool), `alertLevel` (0–3), `alertType` ("none"/"posture"/"sitting"), `updatedAt` (ms timestamp) |
-| `today` | ESP32 | `goodSeconds`, `wornSeconds` |
-| `events/{pushId}` | ESP32 | `type`, optional `level` / `responseSec`, `at` (ms timestamp) |
+| `live` | ESP32, every 1–2 s | `posture` ("good"/"bad"), `deviation` (slouch score 0–30; 15 = bad-posture line), `tilt` (° forward from upright), `badSeconds`, `sittingSeconds`, `moving` (walking, bool), `standing` (bool), `alertLevel` (0–3), `alertType` ("none"/"posture"/"sitting"), `updatedAt` (ms timestamp) |
+| `today` | ESP32 | `goodSeconds`, `wornSeconds`, `day` (YYYY-MM-DD) |
+| `events/{pushId}` | ESP32 | `type` (bad_start, alert, corrected, sit_reminder, break, calibrated, stood_up, sat_down), optional `level` / `responseSec`, `at` (ms timestamp) |
 | `settings` | Dashboard | `alertDelayMin`, `sitLimitMin`, `maxVibration` (%), `quietMode`. The bad-posture threshold is **fixed on the device**, not a setting: 15% flex deviation or a 20° forward bend from calibrated upright (20° = RULA neutral trunk limit). |
 | `commands/calibrate` | Dashboard | timestamp; ESP32 recalibrates, then deletes it |
 | `users/{uid}/tutorialDone` | Dashboard | `{ at, skipped }`, so the tour only shows once per account |

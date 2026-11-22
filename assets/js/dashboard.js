@@ -246,7 +246,7 @@ function userState(d) {
   if (postureAlert) return "slouch-alert";
   if (bad) return "slouching";               // this card is about posture first
   if (sitAlert) return "sitting-too-long";
-  if (d.moving) return "on-break";
+  if (d.moving || d.standing) return "on-break";
   if (now < ui.correctedUntil) return "corrected";
   if (d.tilt != null && d.tilt <= -5) return "leaning-back";
   return "upright";
@@ -327,11 +327,11 @@ function renderLive(d) {
   ring.classList.toggle("over", frac >= 1);
   $("sitTime").textContent = fmtTime(d.sittingSeconds);
   $("sitLimit").textContent = state.settings.sitLimitMin;
-  $("movingPill").textContent = d.moving ? "Moving" : "Still";
-  $("movingPill").className = "pill " + (d.moving ? "good" : "neutral");
+  $("movingPill").textContent = d.moving ? "Walking" : d.standing ? "Standing" : "Sitting";
+  $("movingPill").className = "pill " + (d.moving || d.standing ? "good" : "neutral");
   $("sitHint").textContent = frac >= 1
     ? "Time for a break! Stand up, stretch, and walk around a bit."
-    : d.moving ? "Nice, you're taking a break. Keep moving."
+    : d.moving || d.standing ? "Nice, you're taking a break. Keep moving."
     : frac >= 0.8 ? "Almost time for a break. Get ready to stand up and stretch."
     : "Stand up and stretch now and then to give your back a rest.";
 
@@ -349,6 +349,8 @@ const EVENT_TEXT = {
   sit_reminder: () => ["Sitting limit reached, stand up reminder", "bad"],
   break: () => ["Break taken, sitting timer reset", "good"],
   calibrated: () => ["Posture calibrated", "info"],
+  stood_up: () => ["Stood up", "info"],
+  sat_down: () => ["Sat down", "info"],
   snooze: () => ["Alerts snoozed", "info"]
 };
 
@@ -487,6 +489,7 @@ setInterval(() => {
     src = demoSource();
   }
 
+  if (useFirebase) setConn("off", "Waiting for device…");   // until the ESP32's first update arrives
   if (!useFirebase) {
     setConn("demo", "Demo mode");
     $("footNote").textContent = isDemo
