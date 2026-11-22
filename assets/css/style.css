@@ -239,7 +239,10 @@ body.is-loading .grid, body.is-loading .foot { visibility: hidden; }
 .icon-btn {
   width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--card);
   font: inherit; font-weight: 800; color: var(--accent); cursor: pointer;
+  display: inline-grid; place-items: center; padding: 0; line-height: 1;   /* icon/text dead center */
 }
+.icon-btn svg { display: block; }
+.theme-btn .icon-moon { transform: translate(-1px, 1px); }   /* the moon's shape leans up-right; nudge it to look centered */
 .icon-btn:hover { border-color: var(--accent); }
 .user-menu { display: flex; align-items: center; gap: 10px; }
 .user-email { font-size: 13px; color: var(--muted); font-weight: 600; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -354,10 +357,40 @@ body.touring { overflow-x: hidden; }
 a.btn { display: inline-block; text-decoration: none; }
 
 
+/* ---------- Page transitions (with assets/js/transitions.js) ----------
+   Content fades in when a page opens and fades out before going to the next one.
+   The background stays put, so the switch feels smooth. */
+@keyframes pageIn { from { opacity: 0; } }
+body:not(.is-loading) > :is(header, main, footer, .auth-wrap) { animation: pageIn .35s ease; }
+body.is-loading > :is(header, main, footer) { opacity: 0; }       /* wait for sign-in check, then fade in */
+body.page-leave > :is(header, main, footer, .auth-wrap) { opacity: 0; transition: opacity .2s ease; }
+
 /* =========================================================
    ABOUT US PAGE  (aboutus.html)
    ========================================================= */
 .about-page { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
+
+/* Page background (dashboard + About Us): soft brand-blue glows + a faint dot grid that fades out */
+.page-bg { position: relative; isolation: isolate; }
+.page-bg::before,
+.page-bg::after { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+.page-bg::before {
+  background:
+    radial-gradient(620px 420px at 8% 14%, rgba(22, 115, 201, .20), transparent 70%),
+    radial-gradient(560px 420px at 94% 26%, rgba(56, 189, 248, .20), transparent 70%),
+    radial-gradient(760px 520px at 50% 108%, rgba(22, 115, 201, .16), transparent 70%);
+  animation: aboutGlow 18s ease-in-out infinite alternate;
+}
+.page-bg::after {
+  background-image: radial-gradient(rgba(22, 115, 201, .22) 1.1px, transparent 1.4px);
+  background-size: 24px 24px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 32%, #000 10%, transparent 75%);
+          mask-image: radial-gradient(ellipse 70% 60% at 50% 32%, #000 10%, transparent 75%);
+}
+@keyframes aboutGlow {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(0, -18px, 0) scale(1.04); }
+}
 .about-page:has(dialog[open]) { overflow: hidden; }
 body.is-loading .about-main, body.is-loading .about-foot { visibility: hidden; }
 
@@ -448,13 +481,15 @@ dialog.note.is-leaving .note-head > div, dialog.note.is-leaving .note-body { opa
   padding: 26px 26px 28px; box-shadow: 0 20px 50px rgba(0, 0, 0, .25);
 }
 .note-close {
-  position: absolute; top: 12px; right: 14px; width: 34px; height: 34px; border-radius: 50%;
-  border: 1px solid var(--line); background: transparent; color: var(--muted);
-  font: inherit; font-size: 22px; line-height: 1; cursor: pointer; transition: .2s;
+  position: absolute; top: 18px; right: 18px; z-index: 2; width: 36px; height: 36px; padding: 0;
+  display: grid; place-items: center; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--card); color: var(--muted);
+  line-height: 0; cursor: pointer; transition: .2s;
 }
+.note-close svg { width: 14px; height: 14px; display: block; }
 .note-close:hover { border-color: var(--accent); color: var(--accent); }
 
-.note-head { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; padding-right: 30px; }
+.note-head { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; padding-right: 44px; }
 .note-avatar { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); flex: none; }
 .note-role {
   display: inline-block; font-size: 12px; font-weight: 700; color: var(--accent);
@@ -579,7 +614,7 @@ dialog.note.is-leaving .note-head > div, dialog.note.is-leaving .note-body { opa
   .link { padding: 10px 4px; margin: -10px -4px; }
   .toggle input { width: 22px; height: 22px; }
   .pw-toggle { width: 44px; height: 44px; right: 2px; }
-  .note-close { width: 44px; height: 44px; top: 8px; right: 8px; }
+  .note-close { width: 44px; height: 44px; top: 14px; right: 14px; }
   .tour-skip { padding: 10px 0; }
 }
 @media (hover: none) {
@@ -689,9 +724,7 @@ html[data-theme="dark"] body {
   color: #f1f5f9;
 }
 
-html[data-theme="dark"] .topbar,
 html[data-theme="dark"] .card,
-html[data-theme="dark"] .top-menu,
 html[data-theme="dark"] .theme-dropdown,
 html[data-theme="dark"] .note-card {
   background: #1e293b;
@@ -724,10 +757,31 @@ html[data-theme="dark"] .ring-bg {
   stroke: #334155;
 }
 
+/* Header sits right on the page background now, so its buttons need the lighter card color to stand out */
+html[data-theme="dark"] .topbar .btn,
+html[data-theme="dark"] .topbar .icon-btn,
+html[data-theme="dark"] .topbar .conn { background: #1e293b; border-color: #334155; }
+@media (max-width: 640px) {
+  html[data-theme="dark"] .top-menu { background: #1e293b; border-color: #334155; color: #f1f5f9; }   /* phone drop-down menu only */
+  html[data-theme="dark"] .top-menu .btn { background: #0f172a; }
+}
+
+html[data-theme="dark"] { background: #0f172a; color-scheme: dark; }
+
 /* ---------------- About Us dark mode ---------------- */
 html[data-theme="dark"] body.about-page {
   background: #0f172a;
   color: #f1f5f9;
+}
+html[data-theme="dark"] .page-bg::before {
+  background:
+    radial-gradient(620px 420px at 8% 14%, rgba(56, 189, 248, .12), transparent 70%),
+    radial-gradient(560px 420px at 94% 26%, rgba(22, 115, 201, .18), transparent 70%),
+    radial-gradient(760px 520px at 50% 108%, rgba(56, 189, 248, .08), transparent 70%);
+}
+html[data-theme="dark"] .note-card { border-top-color: #38bdf8; }   /* keep the colored top edge in dark mode */
+html[data-theme="dark"] .page-bg::after {
+  background-image: radial-gradient(rgba(148, 163, 184, .16) 1.1px, transparent 1.4px);
 }
 
 html[data-theme="dark"] .about-intro h2 {

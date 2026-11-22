@@ -42,7 +42,7 @@ function exitDemo() {
     sessionStorage.removeItem("pg_demo");
     sessionStorage.removeItem("pg_demo_theme");
   } catch {}
-  location.replace("index.html");
+  (window.pgGo ? window.pgGo("index.html", true) : location.replace("index.html"));
 }
 
 // Device ID comes from the URL (?device=pg-002), default pg-001.
@@ -88,7 +88,7 @@ async function requireUser() {
   $("userEmail").textContent = user.email;
   $("signOutBtn").addEventListener("click", async () => {
     await signOut(fb.auth);
-    location.replace("index.html");
+    (window.pgGo ? window.pgGo("index.html", true) : location.replace("index.html"));
   });
   return { user, fb };
 }

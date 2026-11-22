@@ -5,6 +5,8 @@
 
 const SDK = "https://www.gstatic.com/firebasejs/13.3.0/";
 const DEMO_KEY = "pg_demo_theme";
+const LAST_KEY = "pg_theme_last";   // last theme used on this browser; read by the inline script in <head>
+                                    // so the next page opens in the right theme without a light flash
 const VALID = new Set(["light", "dark"]);
 const normalize = (v) => (VALID.has(v) ? v : "light");
 
@@ -82,7 +84,9 @@ function themeStore(session, isDemo) {
 
 export async function initTheme({ session = null, isDemo = false, onChange } = {}) {
   const store = themeStore(session, isDemo);
+  const remember = (mode) => { if (!isDemo) { try { localStorage.setItem(LAST_KEY, mode); } catch {} } };
   const initial = applyTheme(await store.load());
+  remember(initial);
   if (onChange) onChange(initial);
 
   const menu = document.getElementById("themeMenu");
@@ -105,6 +109,7 @@ export async function initTheme({ session = null, isDemo = false, onChange } = {
     const opt = e.target.closest(".theme-option");
     if (!opt) return;
     const next = applyTheme(opt.dataset.themeValue);
+    remember(next);
     setOpen(false);
     if (onChange) onChange(next);
     await store.save(next);

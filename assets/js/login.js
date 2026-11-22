@@ -19,7 +19,7 @@ try {
 
 // Already signed in? Go straight to the dashboard.
 onAuthStateChanged(auth, (user) => {
-  if (user && !busy) location.replace("dashboard.html");
+  if (user && !busy) (window.pgGo ? window.pgGo("dashboard.html", true) : location.replace("dashboard.html"));
 });
 
 const ERRORS = {
@@ -103,7 +103,7 @@ form.addEventListener("submit", async (e) => {
   try {
     if (mode === "signup") await createUserWithEmailAndPassword(auth, email, password);
     else await signInWithEmailAndPassword(auth, email, password);
-    location.replace("dashboard.html");
+    (window.pgGo ? window.pgGo("dashboard.html", true) : location.replace("dashboard.html"));
   } catch (err) {
     busy = false;
     btn.disabled = false;

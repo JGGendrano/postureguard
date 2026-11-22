@@ -8,8 +8,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
+  <!-- Apply the saved theme before the page is drawn (no light flash when switching pages in dark mode) -->
+  <script>
+    (function () {
+      try {
+        var demo = /[?&]demo=1/.test(location.search) || sessionStorage.getItem("pg_demo") === "1";
+        var t = demo ? sessionStorage.getItem("pg_demo_theme") : localStorage.getItem("pg_theme_last");
+        if (t === "dark" || t === "light") document.documentElement.dataset.theme = t;
+        if (t === "dark") document.documentElement.style.background = "#0f172a";   // dark from the very first frame
+      } catch (e) {}
+    })();
+  </script>
 </head>
-<body class="is-loading">
+<body class="page-bg is-loading">
   <header class="topbar">
     <div class="brand">
       <img class="brand-logo" src="assets/logo-mark.png" alt="">
@@ -117,8 +128,8 @@
     <!-- Live chart -->
     <section class="card wide" id="chartCard">
       <div class="card-head">
-        <h2>Deviation, last 5 minutes</h2>
-        <span class="legend"><i class="sw sw-line"></i>Deviation <i class="sw sw-thr"></i>Threshold</span>
+        <h2>Slouch level, last 5 minutes</h2>
+        <span class="legend"><i class="sw sw-line"></i>Slouch level <i class="sw sw-thr"></i>Threshold</span>
       </div>
       <canvas id="liveChart" height="180"></canvas>
     </section>
@@ -176,6 +187,7 @@
   </dialog>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="assets/js/transitions.js"></script>
   <script src="assets/js/firebase-config.js"></script>
   <script type="module" src="assets/js/dashboard.js"></script>
   <script type="module" src="assets/js/menu.js"></script>
